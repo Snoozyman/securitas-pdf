@@ -135,7 +135,7 @@ function parse(text) {
         events.push({
             title: match[6],
             location: match[5],
-            start: [DateObj.getFullYear(), parseInt(date[1]), parseInt(date[0]), parseInt(time[0]), parseInt(time[1])],
+            start: [DateObj.getFullYear(), parseInt(date[1]), parseInt(date[0]), parseInt(time[0])-3, parseInt(time[1])],
             duration: { hours: parseInt(duration[0]), minutes: parseInt(duration[1])}
         })
     }
