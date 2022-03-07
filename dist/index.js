@@ -15,7 +15,7 @@ var _moment = require("moment");
 const express = require('express');
 
 const app = express();
-const port = process.env.PORT || 8080;
+const port = process.env.PORT || 80;
 
 const fileUpload = require('express-fileupload');
 
