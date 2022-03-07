@@ -10,10 +10,12 @@ var _console = require("console");
 
 var _process = require("process");
 
+var _moment = require("moment");
+
 const express = require('express');
 
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 8080;
 
 const fileUpload = require('express-fileupload');
 
@@ -129,9 +131,9 @@ app.listen(port, () => {
 });
 
 function parse(text) {
-  // console.log(text)
+  console.log(text);
   const alku = /Nimi(.+\w)\n(.+)\n(\d+.\d+.\d+)\s-\s(\d\d?.\d\d?.\d+)/g;
-  const helsinki = /([a-z]{2})(\d+.\d+)\s(\d+:\d+)\s-\s(\d+:\d+)\s([A-zäö]+\s\d+)([A-z]+\s\d{1,3})\s?(\d+:\d\d)(\d+:\d+)?\n/g;
+  const helsinki = /([a-z]{2})(\d+.\d+)\s(\d+:\d+)\s-\s(\d+:\d+)\s([A-zäö]+\s\d+)([A-z]+\s\d{1,3})\s?(\d+:\d\d)(\d+:\d+)?\n?/g;
   const pori = /([a-z]{2})(\d+.\d+)\s(\d+:\d+)?\s-\s(\d+:\d+)\s(.*)(\d{3}\s[A-zöä]+)\s?(\d+:\d\d)/g;
   let matches;
   let events = [];
@@ -140,14 +142,21 @@ function parse(text) {
 
   for (const match of matches) {
     listobj.push(new tyovuoro(match[1], match[2], match[3], match[4], match[5], match[6], match[7]));
-    let DateObj = new Date();
+    let start = new Date();
+    let end = new Date();
     let date = match[2].split('.');
     let time = match[3].split(':');
+    let etime = match[4].split(':');
     let duration = match[7].split(':');
+    start.setHours(parseInt(time[0]), parseInt(time[1]));
+    start.setFullYear(2022, parseInt(date[1]) - 1, parseInt(date[0]));
+    end.setHours(parseInt());
+    if (parseInt(etime[0] > 0)) start.setFullYear(2022, parseInt(date[1]) - 1, parseInt(date[0]) + 1);
+    if (parseInt(duration[0]) < 6) duration;
     events.push({
       title: match[6],
       location: match[5],
-      start: [DateObj.getFullYear(), parseInt(date[1]), parseInt(date[0]), parseInt(time[0]), parseInt(time[1])],
+      start: [start.getFullYear(), start.getMonth() + 1, start.getDate(), start.getHours(), start.getMinutes()],
       duration: {
         hours: parseInt(duration[0]),
         minutes: parseInt(duration[1])
@@ -155,5 +164,6 @@ function parse(text) {
     });
   }
 
+  console.log(events);
   return events;
 }

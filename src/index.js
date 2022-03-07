@@ -1,6 +1,6 @@
 const express = require('express')
 const app = express()
-const port = process.env.PORT || 80
+const port = process.env.PORT || 8080
 const fileUpload = require('express-fileupload');
 const cors = require('cors');
 const bodyParser = require('body-parser');
@@ -9,6 +9,7 @@ import { fstat, readFileSync, writeFileSync, fs } from 'fs';
 import { match } from 'assert';
 import { time } from 'console';
 import { nextTick } from 'process';
+import { utc } from 'moment';
 const ics = require('ics');
 const moment = require('moment')
 const path = require('path')
@@ -114,10 +115,10 @@ app.listen(port, () => {
   })
 
 function parse(text) {
-    // console.log(text)
+    console.log(text)
     const alku = /Nimi(.+\w)\n(.+)\n(\d+.\d+.\d+)\s-\s(\d\d?.\d\d?.\d+)/g
 
-    const helsinki = /([a-z]{2})(\d+.\d+)\s(\d+:\d+)\s-\s(\d+:\d+)\s([A-zäö]+\s\d+)([A-z]+\s\d{1,3})\s?(\d+:\d\d)(\d+:\d+)?\n/g
+    const helsinki = /([a-z]{2})(\d+.\d+)\s(\d+:\d+)\s-\s(\d+:\d+)\s([A-zäö]+\s\d+)([A-z]+\s\d{1,3})\s?(\d+:\d\d)(\d+:\d+)?\n?/g
     const pori = /([a-z]{2})(\d+.\d+)\s(\d+:\d+)?\s-\s(\d+:\d+)\s(.*)(\d{3}\s[A-zöä]+)\s?(\d+:\d\d)/g
     let matches
     let events = []
@@ -128,17 +129,27 @@ function parse(text) {
     let listobj= []
     for (const match of matches){
         listobj.push(new tyovuoro(match[1], match[2], match[3], match[4], match[5], match[6], match[7]))
-        let DateObj = new Date()
+        let start = new Date()
+        let end = new Date()
+
         let date = match[2].split('.')
         let time = match[3].split(':')
+        let etime = match[4].split(':')
         let duration = match[7].split(':')
+        start.setHours(parseInt(time[0]), parseInt(time[1]))
+        start.setFullYear(2022,parseInt(date[1])-1, parseInt(date[0]))
+
+        end.setHours(parseInt())
+        if(parseInt(etime[0]>0)) start.setFullYear(2022, parseInt(date[1])-1, parseInt(date[0])+1)
+        if(parseInt(duration[0]) < 6) duration
+
         events.push({
             title: match[6],
             location: match[5],
-            start: [DateObj.getFullYear(), parseInt(date[1]), parseInt(date[0]), parseInt(time[0])-3, parseInt(time[1])],
+            start: [start.getFullYear(), start.getMonth()+1, start.getDate(), start.getHours(), start.getMinutes()],
             duration: { hours: parseInt(duration[0]), minutes: parseInt(duration[1])}
         })
     }
-    
+    console.log(events)
     return events
 }
