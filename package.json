@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "babel -w src -d dist",
+    "build": "babel src -d dist",
     "start": "npm run build && node dist/index.js",
     "dev": "nodemon dist/index.js",
     "publish": "git push heroku master"
