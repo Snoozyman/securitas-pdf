@@ -1,18 +1,15 @@
 const express = require('express')
 const app = express()
-const port = process.env.PORT || 80
+const port = process.env.PORT || 8080
 const fileUpload = require('express-fileupload');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 import { PdfData, VerbosityLevel } from 'pdfdataextract';
-import { fstat, readFileSync, writeFileSync, fs } from 'fs';
-import { match } from 'assert';
-import { time } from 'console';
-import { nextTick } from 'process';
-import { utc } from 'moment';
+const fs = require('fs')
 const ics = require('ics');
 const moment = require('moment')
 const path = require('path')
+
 
 app.use(fileUpload({
     createParentPath: true
@@ -23,22 +20,16 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 
-console.log(moment())//.format('YYYY-M-D-H-m').split("-"))
 
+
+fs.exists('events.ics', (e) => {
+    if(e) fs.rm('events.ics', () => console.log('File deleted'))
+})
+
+app.set('view engine', 'pug')
+app.set('views', './src/views')
 app.get('/', (req,res) => {
-    res.send(`
-    <html>
-    <body>
-        <h1>Lataa työvuorolistasi tästä:</h1>
-
-        <form action='/tyot' method='POST' enctype='multipart/form-data'>
-        <label>Select file to upload</label>
-        <input type='file' name='lista'><br><br>
-        <input type='submit' name='upload_btn' value='Lataa'>
-    </form>
-    </body>
-    
-    </html>`)
+    res.render('index')
 })
 
 app.post('/tyot', async (req, res) => {
@@ -85,9 +76,12 @@ app.post('/tyot', async (req, res) => {
                 const { error, value } = ics.createEvents(events)
                 if(error) res.send(error)
                 
-                writeFileSync('public/events.ics', value);
+                /** DEBUG */
+                //res.send(events)
+
+                fs.writeFileSync('events.ics', value);
                 // res.sendFile('events.ics', {root: 'public'})
-                res.download('public/events.ics', 'tyolista-' + moment().format("YYYYMMDD"))
+                res.download('events.ics', 'tyolista-' + moment().format("YYYYMMDD"))
 
             });
       
@@ -193,9 +187,10 @@ app.listen(port, () => {
 function parse(text) {
     // console.log(text)
     let lista = []
+
     const alku = /Nimi(.+\w)\n(.+)\n(\d+.\d+.\d+)\s-\s(\d\d?.\d\d?.\d+)/g
     
-    const helsinki = /([a-z]{2})(\d+\.\d+)\s(\d+\:\d+)\s\-\s(\d+:\d+)\s([A-zäö]+\s\d+)([A-z]+\s\d{1,3})\s?(\d+\:\d\d)(\d+:\d+)?/gm;
+    const helsinki = /([a-z]{2})(\d+\.\d+)\s(\d+\:\d+)\s\-\s(\d+:\d+)\s([A-zäö]+\s\d+)(.+?)\s?(\d?\d:\d\d?)(\d?\d:\d\d)?/g;
     const pori = /([a-z]{2})(\d+.\d+)\s(\d+:\d+)?\s-\s(\d+:\d+)\s(.*)(\d{3}\s[A-zöä]+)\s?(\d+:\d\d)/g;
 
     const matches = text.matchAll(helsinki)

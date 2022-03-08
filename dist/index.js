@@ -2,26 +2,18 @@
 
 var _pdfdataextract = require("pdfdataextract");
 
-var _fs = require("fs");
-
-var _assert = require("assert");
-
-var _console = require("console");
-
-var _process = require("process");
-
-var _moment = require("moment");
-
 const express = require('express');
 
 const app = express();
-const port = process.env.PORT || 80;
+const port = process.env.PORT || 8080;
 
 const fileUpload = require('express-fileupload');
 
 const cors = require('cors');
 
 const bodyParser = require('body-parser');
+
+const fs = require('fs');
 
 const ics = require('ics');
 
@@ -38,22 +30,13 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
   extended: true
 }));
-console.log(moment()); //.format('YYYY-M-D-H-m').split("-"))
-
+fs.exists('events.ics', e => {
+  if (e) fs.rm('events.ics', () => console.log('File deleted'));
+});
+app.set('view engine', 'pug');
+app.set('views', './src/views');
 app.get('/', (req, res) => {
-  res.send(`
-    <html>
-    <body>
-        <h1>Lataa työvuorolistasi tästä:</h1>
-
-        <form action='/tyot' method='POST' enctype='multipart/form-data'>
-        <label>Select file to upload</label>
-        <input type='file' name='lista'><br><br>
-        <input type='submit' name='upload_btn' value='Lataa'>
-    </form>
-    </body>
-    
-    </html>`);
+  res.render('index');
 });
 app.post('/tyot', async (req, res) => {
   try {
@@ -105,9 +88,12 @@ app.post('/tyot', async (req, res) => {
           value
         } = ics.createEvents(events);
         if (error) res.send(error);
-        (0, _fs.writeFileSync)('public/events.ics', value); // res.sendFile('events.ics', {root: 'public'})
+        /** DEBUG */
+        //res.send(events)
 
-        res.download('public/events.ics', 'tyolista-' + moment().format("YYYYMMDD"));
+        fs.writeFileSync('events.ics', value); // res.sendFile('events.ics', {root: 'public'})
+
+        res.download('events.ics', 'tyolista-' + moment().format("YYYYMMDD"));
       });
     }
   } catch (err) {
@@ -213,7 +199,7 @@ function parse(text) {
   // console.log(text)
   let lista = [];
   const alku = /Nimi(.+\w)\n(.+)\n(\d+.\d+.\d+)\s-\s(\d\d?.\d\d?.\d+)/g;
-  const helsinki = /([a-z]{2})(\d+\.\d+)\s(\d+\:\d+)\s\-\s(\d+:\d+)\s([A-zäö]+\s\d+)([A-z]+\s\d{1,3})\s?(\d+\:\d\d)(\d+:\d+)?/gm;
+  const helsinki = /([a-z]{2})(\d+\.\d+)\s(\d+\:\d+)\s\-\s(\d+:\d+)\s([A-zäö]+\s\d+)(.+?)\s?(\d?\d:\d\d?)(\d?\d:\d\d)?/g;
   const pori = /([a-z]{2})(\d+.\d+)\s(\d+:\d+)?\s-\s(\d+:\d+)\s(.*)(\d{3}\s[A-zöä]+)\s?(\d+:\d\d)/g;
   const matches = text.matchAll(helsinki);
 
