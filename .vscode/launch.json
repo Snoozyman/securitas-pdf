@@ -5,13 +5,18 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "type": "pwa-node",
-            "request": "launch",
-            "name": "Launch Program",
-            "skipFiles": [
-                "<node_internals>/**"
-            ],
-            "program": "${workspaceFolder}/src/index.js"
-        }
+        "name": "Launch via NPM",
+        "request": "launch",
+        "runtimeArgs": [
+            "run",
+            "dev"
+        ],
+        "cwd": "${workspaceFolder}/",
+        "runtimeExecutable": "npm",
+        "skipFiles": [
+            "<node_internals>/**"
+        ],
+        "type": "node"
+    },
     ]
 }
